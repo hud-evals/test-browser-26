@@ -96,7 +96,7 @@ async def get_telemetry_resource() -> Telemetry:
 
     return Telemetry(
         provider=os.getenv("BROWSER_PROVIDER", "unknown"),
-        status="not_initialized",
+        status="initializing",
         live_url=None,
         timestamp=datetime.now().isoformat(),
         cdp_url=None,
