@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from hud.server import MCPServer
+from hud import Environment
 from hud.server.context import attach_context
 
 # Import tools
@@ -39,9 +39,9 @@ persistent_ctx = None
 playwright_tool: Optional[PlaywrightToolWithMemory] = None
 browser_executor: Optional[BrowserExecutor] = None
 
-# Create Hud FastMCP instance
-mcp = MCPServer(
-    name="HUD Remote Browser Environment",
+# Create Environment instance (extends MCPServer with script support)
+mcp = Environment(
+    name="remote-browser",
     instructions="""
     This is a remote browser automation environment that connects to cloud browser providers.
     The browser provider is configured via the BROWSER_PROVIDER environment variable.
@@ -51,6 +51,8 @@ mcp = MCPServer(
     - evaluate: Evaluate browser state with various evaluator functions
     - playwright tools: Browser automation (navigate, click, type, etc.)
     - computer tools: Control browser as if it were a desktop application
+    
+    Scripts can be defined with @mcp.script() to combine setup + prompt + evaluation.
     """,
 )
 
@@ -317,6 +319,46 @@ async def initialize_environment(ctx):
 
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
+
+
+# =============================================================================
+# Scripts - Combine setup + prompt + evaluation in one async generator
+# =============================================================================
+
+
+@mcp.script("find_page_with_text")
+async def find_page_with_text_script(start_url: str, target_text: str):
+    """Find a page containing the target text, starting from a given URL.
+
+    The agent must navigate, search, or click links to find a page
+    where the target text appears.
+
+    Args:
+        start_url: The starting URL (e.g., a homepage or search engine)
+        target_text: Text that must be present on the final page
+    """
+    global playwright_tool
+
+    # Setup phase: navigate to the starting URL
+    if playwright_tool:
+        await playwright_tool.navigate(start_url)
+        logger.info("Script setup: navigated to starting URL %s", start_url)
+
+    # First yield: send prompt to agent
+    answer = yield f"Starting from {start_url}, find a page that contains the text: '{target_text}'"
+
+    # Evaluate phase: check if the current page contains the target text
+    reward = 0.0
+    if playwright_tool and playwright_tool.page:
+        page_content = await playwright_tool.page.content()
+        if target_text.lower() in page_content.lower():
+            reward = 1.0
+            logger.info("Script evaluate: text '%s' found on page, reward=1.0", target_text)
+        else:
+            logger.info("Script evaluate: text '%s' not found, reward=0.0", target_text)
+
+    # Second yield: return the reward
+    yield reward
 
 
 @mcp.shutdown
