@@ -326,7 +326,7 @@ async def initialize_environment(ctx):
 # =============================================================================
 
 
-@mcp.script("find_page_with_text")
+@mcp.scenario("find_page_with_text")
 async def find_page_with_text_script(start_url: str, target_text: str):
     """Find a page containing the target text, starting from a given URL.
 
