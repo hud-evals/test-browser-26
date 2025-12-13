@@ -326,6 +326,13 @@ async def initialize_environment(ctx):
 # =============================================================================
 
 
+def _ensure_url_protocol(url: str) -> str:
+    """Ensure URL has a protocol (https:// by default)."""
+    if not url.startswith(("http://", "https://")):
+        return f"https://{url}"
+    return url
+
+
 @mcp.scenario("find_page_with_text")
 async def find_page_with_text_script(start_url: str, target_text: str):
     """Find a page containing the target text, starting from a given URL.
@@ -339,10 +346,13 @@ async def find_page_with_text_script(start_url: str, target_text: str):
     """
     global playwright_tool
 
+    # Preprocess URL to ensure it has a protocol
+    url = _ensure_url_protocol(start_url)
+
     # Setup phase: navigate to the starting URL
     if playwright_tool:
-        await playwright_tool.navigate(start_url, "networkidle")
-        logger.info("Script setup: navigated to starting URL %s", start_url)
+        await playwright_tool.navigate(url, "networkidle")
+        logger.info("Script setup: navigated to starting URL %s", url)
 
     # First yield: send prompt to agent
     answer = yield f"Starting from {start_url}, find a page that contains the text: '{target_text}'"
