@@ -341,7 +341,7 @@ async def find_page_with_text_script(start_url: str, target_text: str):
 
     # Setup phase: navigate to the starting URL
     if playwright_tool:
-        await playwright_tool.navigate(start_url)
+        await playwright_tool.navigate(start_url, "networkidle")
         logger.info("Script setup: navigated to starting URL %s", start_url)
 
     # First yield: send prompt to agent

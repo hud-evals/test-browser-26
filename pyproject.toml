@@ -3,7 +3,7 @@ name = "hud-remote-browser"
 version = "0.1.0"
 description = "HUD Remote Browser Controller with MCP tools for cloud browser providers"
 requires-python = ">=3.11,<3.13"
-dependencies = [ "hud-python[agents] @ git+https://github.com/hud-evals/hud-python@b4f1ab6f5de841bb77fe890eb4d8fe7b628a9937", "pyautogui", "playwright", "httpx", "typer", "google-api-python-client", "google-auth",]
+dependencies = [ "hud-python[agents] @ git+https://github.com/hud-evals/hud-python@dfdb94f0a6b73765e3ec27a0b621b2513bb924f4", "pyautogui", "playwright", "httpx", "typer", "google-api-python-client", "google-auth",]
 
 [build-system]
 requires = [ "hatchling",]
